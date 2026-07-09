@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Tuyển Dụng Nhân Sự MTD Law</title>
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', Roboto, sans-serif; }
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+        .sidebar-menu.active { background-color: #ef4444; color: white; }
+    </style>
+</head>
+<body class="bg-[#f4f6fa] text-gray-800 text-sm">
+
+    <!-- TOPBAR & HEADER -->
+    <header class="bg-[#1e293b] text-white text-xs py-2 px-4 md:px-12 flex justify-between items-center shadow-xs">
+        <div><i class="fas fa-phone-alt text-blue-400"></i> Hotline: 0376.775.207</div>
+        <div class="flex gap-6">
+            <button onclick="navigateTo('home-view')" class="hover:text-blue-400 cursor-pointer"><i class="fas fa-home"></i> Trang chủ</button>
+            <button class="hover:text-blue-400 cursor-pointer"><i class="fas fa-user"></i> Người tìm việc</button>
+            <button class="hover:text-blue-400 cursor-pointer"><i class="fas fa-building"></i> Nhà tuyển dụng</button>
+        </div>
+    </header>
+
+    <!-- MAIN NAVIGATION -->
+    <nav class="bg-white py-4 px-4 md:px-12 flex flex-col lg:flex-row justify-between items-center gap-4 shadow-sm sticky top-0 z-40">
+        <div onclick="navigateTo('home-view')" class="bg-[#1e1b4b] text-white px-5 py-2 rounded font-black text-xl tracking-wider cursor-pointer shadow-md">
+            MTD Law
+        </div>
+        
+        <!-- Search Engine -->
+        <div class="flex flex-1 max-w-3xl w-full border border-gray-300 rounded shadow-xs overflow-hidden">
+            <input id="searchKey" type="text" placeholder="Nhập từ khóa việc làm hành chính, nhân sự, kế toán, kỹ thuật, công nghệ..." class="flex-1 px-4 py-2 outline-none text-xs bg-gray-50/50">
+            <select id="searchIndustry" class="border-l border-gray-200 px-3 text-xs bg-white text-gray-600 outline-none">
+                <option value="">Tất cả các ngành</option>
+                <option value="cntt">Công nghệ thông tin</option>
+                <option value="hr">Hành chính nhân sự</option>
+                <option value="ketoan">Kế toán / Tài chính</option>
+            </select>
+            <select id="searchLocation" class="border-l border-gray-200 px-3 text-xs bg-white text-gray-600 outline-none">
+                <option value="">Tất cả tỉnh thành</option>
+                <option value="HN">Hà Nội</option>
+                <option value="HCM">TP. Hồ Chí Minh</option>
+            </select>
+            <button onclick="executeSearch()" class="bg-[#1e1b4b] text-white px-6 hover:bg-indigo-900 cursor-pointer transition-colors"><i class="fas fa-search"></i></button>
+        </div>
+        
+        <!-- Auth Dynamic Zone -->
+        <div id="auth-zone" class="flex items-center gap-2">
+            <button id="btn-nav-login" onclick="openModal('loginModal')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded font-bold text-xs cursor-pointer transition-all">Đăng nhập</button>
+            <button id="btn-nav-register" onclick="openModal('registerModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-1.5 rounded font-bold text-xs cursor-pointer transition-all">Đăng ký</button>
+            <!-- Khu vực hiện tên và nút Đăng xuất -->
+            <div id="welcome-text" class="text-xs font-bold text-indigo-950 ml-2 flex items-center gap-2 hidden"></div>
+        </div>
+    </nav>
+
+    <!-- RUNNING MARQUEE BANNER -->
+    <div class="bg-blue-600 text-white py-2 px-4 text-center font-medium text-xs shadow-inner flex justify-center items-center gap-2">
+        <i class="fas fa-bullhorn text-amber-300 animate-bounce"></i> 
+        <span id="marquee-text">Chào mừng bạn đến với Hệ thống tuyển dụng nhân sự MTD Law</span>
+    </div>
+
+    <!-- SUB-NAV FOR CANDIDATES -->
+    <div id="candidate-subnav" class="bg-white border-b border-gray-200 px-4 md:px-12 py-2 flex justify-between items-center hidden">
+        <div class="flex gap-4 text-xs text-gray-600 font-medium">
+            <button onclick="navigateTo('create-cv-view')" class="hover:text-blue-600 cursor-pointer font-bold text-blue-600"><i class="fas fa-file-alt"></i> Hồ sơ ứng viên</button>
+            <button class="hover:text-blue-600 cursor-pointer"><i class="fas fa-user-cog text-purple-500"></i> Tài khoản ứng viên</button>
+            <button class="hover:text-blue-600 cursor-pointer"><i class="fas fa-magic text-red-500"></i> Làm đẹp CV <span class="bg-red-500 text-white text-[9px] px-1 rounded-full font-bold">New</span></button>
+        </div>
+        <button onclick="navigateTo('admin-view')" id="btnGoAdmin" class="bg-red-500 text-white px-4 py-1.5 rounded font-bold text-xs cursor-pointer shadow-xs hidden"><i class="fas fa-user-shield"></i> Quản trị hệ thống MTD Law</button>
+    </div>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <div class="max-w-[1440px] mx-auto p-4 md:p-8 min-h-screen">
+        
+        <!-- ================= PAGE 1: HOME VIEW ================= -->
+        <main id="home-view" class="page-view active space-y-8">
+            <!-- Fast Utilities Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div onclick="navigateTo('create-cv-view')" class="bg-white p-5 rounded-lg border border-gray-100 shadow-xs flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer">
+                    <div><h4 class="font-bold text-gray-800">Tạo hồ sơ MTD Law</h4><p class="text-xs text-gray-400 mt-1">Kết nối doanh nghiệp đa ngành</p></div>
+                    <i class="fas fa-paper-plane text-blue-500 text-xl"></i>
+                </div>
+                <div onclick="handleRecruiterPostClick()" class="bg-white p-5 rounded-lg border border-gray-100 shadow-xs flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer">
+                    <div><h4 class="font-bold text-gray-800">Đăng Tin Tuyển Dụng</h4><p class="text-xs text-gray-400 mt-1">Dành cho Nhà tuyển dụng (Công ty)</p></div>
+                    <i class="fas fa-th text-indigo-500 text-xl"></i>
+                </div>
+                <div onclick="openModal('loginModal')" class="bg-white p-5 rounded-lg border border-gray-100 shadow-xs flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer">
+                    <div><h4 class="font-bold text-gray-800">Đăng nhập</h4><p class="text-xs text-gray-400 mt-1">Truy cập tài khoản cá nhân</p></div>
+                    <i class="fas fa-sign-in-alt text-emerald-500 text-xl"></i>
+                </div>
+                <div onclick="openModal('registerModal')" class="bg-white p-5 rounded-lg border border-gray-100 shadow-xs flex justify-between items-center hover:shadow-md transition-shadow cursor-pointer">
+                    <div><h4 class="font-bold text-gray-800">Đăng ký thành viên</h4><p class="text-xs text-gray-400 mt-1">Tạo tài khoản hệ thống mới</p></div>
+                    <i class="fas fa-user-plus text-blue-600 text-xl"></i>
+                </div>
+            </div>
+            <!-- HOT JOBS SECTION -->
+            <section class="bg-white p-6 rounded-lg border border-gray-200 shadow-xs">
+                <h3 class="text-red-600 font-bold text-base uppercase mb-6 flex items-center gap-2 border-b pb-3 border-gray-100">
+                    <span class="w-1 h-5 bg-red-600 inline-block"></span> VỊ TRÍ VIỆC LÀM HOT 
+                </h3>
+                <div id="hot-jobs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- REGULAR JOBS SECTION -->
+            <section class="bg-white p-6 rounded-lg border border-gray-200 shadow-xs">
+                <h3 class="text-blue-900 font-bold text-base uppercase mb-6 flex items-center gap-2 border-b pb-3 border-gray-100">
+                    <span class="w-1 h-5 bg-blue-900 inline-block"></span> DANH SÁCH TUYỂN DỤNG TIÊU ĐIỂM 
+                </h3>
+                <div id="normal-jobs-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+        </main>
+
+        <!-- ================= PAGE 2: JOB DETAIL VIEW ================= -->
+        <main id="detail-view" class="page-view max-w-4xl mx-auto space-y-6">
+            <button onclick="navigateTo('home-view')" class="text-gray-600 hover:text-[#1e1b4b] font-bold flex items-center gap-2 border px-4 py-2 bg-white rounded shadow-xs cursor-pointer">
+                <i class="fas fa-chevron-left"></i> Quay lại trang chủ
+            </button>
+            
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm relative">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="det-title" class="text-2xl font-bold text-blue-900"></h2>
+                        <p id="det-company" class="text-gray-500 mt-2 font-medium"></p>
+                    </div>
+                    <button onclick="alert('Ứng tuyển thành công!')" class="bg-[#e17055] hover:bg-orange-700 text-white font-bold px-6 py-3 rounded text-sm tracking-wide cursor-pointer shadow-md transition-all">Ứng tuyển ngay</button>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 border border-gray-200 rounded-lg p-4 bg-gray-50/50 mt-6 text-center text-xs">
+                    <div><p class="text-gray-400 mb-1">Mức lương</p><p id="det-salary" class="font-bold text-red-500 text-sm"></p></div>
+                    <div><p class="text-gray-400 mb-1">Kinh nghiệm</p><p id="det-exp" class="font-bold text-gray-700 text-sm"></p></div>
+                    <div><p class="text-gray-400 mb-1">Hình thức</p><p id="det-type" class="font-bold text-gray-700 text-sm">Toàn thời gian</p></div>
+                    <div><p class="text-gray-400 mb-1">Địa điểm</p><p id="det-loc" class="font-bold text-gray-700 text-sm"></p></div>
+                </div>
+
+                <div class="mt-8 space-y-6 border-t pt-6 text-gray-700 leading-relaxed">
+                    <div>
+                        <h4 class="font-bold text-gray-900 border-b pb-1 mb-2">1. MÔ TẢ CÔNG VIỆC:</h4>
+                        <p id="det-desc"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ================= PAGE 4: CREATE CV VIEW ================= -->
+        <main id="create-cv-view" class="page-view max-w-2xl mx-auto">
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm space-y-6">
+                <div class="border-b pb-3">
+                    <h2 class="text-xl font-bold text-blue-900"><i class="fas fa-file-medical text-blue-600"></i> KHU VỰC THIẾT LẬP HỒ SƠ ỨNG VIÊN MTD LAW</h2>
+                    <p class="text-xs text-gray-400 mt-1">Hồ sơ sau khi hoàn tất sẽ được cập nhật trực tiếp vào danh sách ứng viên hệ thống</p>
+                </div>
+                
+                <div class="space-y-4 text-xs">
+                    <!-- Upload ảnh đại diện -->
+                    <div class="flex items-center gap-4 bg-gray-50 p-4 border border-gray-200 rounded-lg">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center border shrink-0">
+                            <img id="avatarPreview" src="https://via.placeholder.com/150" alt="Avatar Preview" class="w-full h-full object-cover hidden">
+                            <i id="avatarPlaceholder" class="fas fa-user text-gray-400 text-2xl"></i>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-gray-700 mb-1">Ảnh đại diện ứng viên</label>
+                            <input type="file" id="cvAvatar" accept="image/*" onchange="previewImage(this)" class="text-xs text-gray-500 file:mr-3 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block font-bold text-gray-600 mb-1">Họ và tên của bạn *</label><input type="text" id="cvName" value="Nguyễn Thị Lan" class="w-full border p-2.5 rounded bg-gray-50 outline-none"></div>
+                        <div>
+                            <label class="block font-bold text-gray-600 mb-1">Giới tính *</label>
+                            <select id="cvGender" class="w-full border p-2.5 rounded bg-white outline-none">
+                                <option value="Nữ">Nữ</option>
+                                <option value="Nam">Nam</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label class="block font-bold text-gray-600 mb-1">Địa chỉ Gmail liên hệ *</label><input type="email" id="cvEmail" value="nguyenthilan@gmail.com" class="w-full border p-2.5 rounded bg-gray-50 outline-none"></div>
+                        <div><label class="block font-bold text-gray-600 mb-1">Số điện thoại di động *</label><input type="text" id="cvPhone" placeholder="Nhập số điện thoại" class="w-full border p-2.5 rounded bg-gray-50 outline-none"></div>
+                    </div>
+                    
+                    <!-- Tải lên file đính kèm -->
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">Đính kèm tập tin CV từ thiết bị (PDF, DOCX, PNG) *</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                <div class="flex flex-col items-center justify-center pt-3 pb-3">
+                                    <i class="fas fa-cloud-upload-alt text-gray-400 text-xl mb-1"></i>
+                                    <p id="fileNameDisplay" class="text-xs text-gray-500 text-center px-4"><span class="font-bold text-blue-600">Bấm để tải file lên</span> hoặc kéo thả tại đây</p>
+                                </div>
+                                <input type="file" id="cvFile" accept=".pdf,.doc,.docx,.png,.jpg" onchange="displayFileName(this)" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-gray-600 mb-1">Tóm tắt năng lực cốt lõi & Mong muốn CV tìm việc *</label>
+                        <textarea id="cvSummary" rows="4" placeholder="Ví dụ: Cử nhân Quản trị Nhân sự - 2 năm làm tuyển dụng hành chính..." class="w-full border p-2.5 rounded bg-gray-50 outline-none leading-relaxed"></textarea>
+                    </div>
+                    
+                    <div class="flex gap-3 pt-2">
+                        <button onclick="submitCandidateCV()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded uppercase tracking-wider cursor-pointer shadow-md transition-colors text-center">Lưu và Xuất Bản Hồ Sơ</button>
+                        <button onclick="navigateTo('home-view')" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-6 py-3 rounded font-medium cursor-pointer transition-colors">Hủy bỏ</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ================= PAGE 3: ADMIN VIEW ================= -->
+        <main id="admin-view" class="page-view bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div class="flex flex-col md:flex-row min-h-[650px]">
+                <aside class="w-full md:w-64 bg-[#1e293b] text-slate-300">
+                    <div class="p-6 border-b border-slate-700 bg-[#0f172a]">
+                        <h3 class="font-black text-white uppercase text-sm"><i class="fas fa-shield-alt text-red-500"></i> MTD LAW ADMIN</h3>
+                    </div>
+                    <nav class="p-4 space-y-2 text-xs font-semibold">
+                        <button id="menu-dashboard" onclick="switchAdminTab('dashboard')" class="sidebar-menu w-full text-left px-4 py-3 rounded bg-slate-700 text-white active"><i class="fas fa-chart-pie"></i> Báo cáo thống kê</button>
+                        <button id="menu-pending" onclick="switchAdminTab('pending')" class="sidebar-menu w-full text-left px-4 py-3 rounded hover:bg-slate-700"><i class="fas fa-clock"></i> Tin chờ duyệt</button>
+                        <button id="menu-companies" onclick="switchAdminTab('companies')" class="sidebar-menu w-full text-left px-4 py-3 rounded hover:bg-slate-700"><i class="fas fa-building"></i> Danh sách công ty</button>
+                        <button id="menu-candidates" onclick="switchAdminTab('candidates')" class="sidebar-menu w-full text-left px-4 py-3 rounded hover:bg-slate-700"><i class="fas fa-users"></i> Danh sách ứng viên</button>
+                    </nav>
+                </aside>
+
+                <section class="flex-1 p-6 bg-[#f8fafc]">
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="bg-emerald-500 p-4 rounded text-white shadow">
+                            <p id="kpi-cand" class="text-2xl font-bold">15</p><p class="text-[10px]">Ứng viên</p>
+                        </div>
+                        <div class="bg-amber-500 p-4 rounded text-white shadow">
+                            <p id="kpi-comp-count" class="text-2xl font-bold">10</p><p class="text-[10px]">Doanh nghiệp</p>
+                        </div>
+                        <div class="bg-blue-500 p-4 rounded text-white shadow">
+                            <p class="text-2xl font-bold">10</p><p class="text-[10px]">Hồ sơ mới</p>
+                        </div>
+                        <div class="bg-red-500 p-4 rounded text-white shadow">
+                            <p class="text-2xl font-bold">100%</p><p class="text-[10px]">Khớp mục tiêu</p>
+                        </div>
+                    </div>
+
+                    <!-- TAB 1: BÁO CÁO THỐNG KÊ MỚI (TỪ ẢNH) -->
+                    <div id="admin-tab-dashboard" class="admin-tab-content space-y-6">
+                        <div class="bg-white p-5 rounded border border-gray-200 shadow-xs">
+                            <div class="bg-[#f0f5ff] text-[#004094] p-3 font-bold text-xs rounded border-l-4 border-[#0056c1] mb-5">
+                                ℹ️ BÁO CÁO THỐNG KÊ ĐỊNH KỲ HÀNG THÁNG - HỆ THỐNG ĐA LĨNH VỰC MTD LAW.
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                                <!-- Trái: Cơ cấu ngành -->
+                                <div class="space-y-4">
+                                    <div class="font-bold text-gray-700 text-xs flex items-center gap-1"><i class="fas fa-chart-line text-blue-600"></i> Cơ Cấu Nhu Cầu Tuyển Dụng Theo Ngành</div>
+                                    
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-medium"><span>Công nghệ thông tin / Phần mềm</span><span>35%</span></div>
+                                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-blue-600 h-full rounded-full" style="width: 35%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-medium"><span>Kinh doanh / Quản lý Sales</span><span>25%</span></div>
+                                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-purple-500 h-full rounded-full" style="width: 25%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-medium"><span>Kế toán & Hành chính nhân sự</span><span>25%</span></div>
+                                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-orange-500 h-full rounded-full" style="width: 25%"></div></div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-xs font-medium"><span>Lĩnh vực Kỹ thuật, Giáo dục & Khác</span><span>15%</span></div>
+                                        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden"><div class="bg-slate-500 h-full rounded-full" style="width: 15%"></div></div>
+                                    </div>
+                                </div>
+
+                                <!-- Phải: Khớp CV -->
+                                <div class="border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-6 flex flex-col justify-between">
+                                    <div>
+                                        <div class="font-bold text-gray-700 text-xs flex items-center gap-1 mb-1"><i class="fas fa-tasks text-emerald-600"></i> Chỉ số tăng trưởng kết nối khớp CV</div>
+                                        <p class="text-[11px] text-gray-400 mb-4">Thống kê dữ liệu chu kỳ tuần / tháng hiện tại:</p>
+                                        <h2 class="text-2xl font-black text-emerald-600 tracking-tight mb-2">100% Khớp Nổi Mục Tiêu</h2>
+                                        <p class="text-xs text-gray-600 leading-relaxed">Tất cả 10 doanh nghiệp đăng ký đều đã liên kết thành công với các ứng viên tương thích thông qua hợp đồng cung ứng nhân sự trong tuần qua.</p>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400 italic mt-6">Báo cáo tự động tổng hợp định kỳ vào ngày cuối cùng của tháng.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: TIN CHỜ DUYỆT -->
+                    <div id="admin-tab-pending" class="admin-tab-content hidden bg-white p-4 rounded border shadow-sm">
+                        <h4 class="font-bold text-xs mb-3 text-gray-700">Yêu cầu đăng tuyển đang xếp hàng</h4>
+                        <p class="text-xs text-gray-400 italic">Hiện tại không có tin đăng nào đang chờ duyệt.</p>
+                    </div>
+
+                    <!-- TAB 3: DANH SÁCH CÔNG TY (Bao gồm 2 cũ + 8 giả lập mới) -->
+                    <div id="admin-tab-companies" class="admin-tab-content hidden bg-white p-4 rounded border shadow-sm">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-xs text-gray-700">Danh Sách Doanh Nghiệp Hệ Thống</h4>
+                            <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2 py-0.5 rounded-full">Tổng: 10 Đơn vị</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 border-b border-gray-200">
+                                        <th class="p-3 text-gray-700 font-bold">Tên Doanh Nghiệp</th>
+                                        <th class="p-3 text-gray-700 font-bold">Người Đại Diện</th>
+                                        <th class="p-3 text-gray-700 font-bold">Email</th>
+                                        <th class="p-3 text-gray-700 font-bold">Số Điện Thoại</th>
+                                        <th class="p-3 text-gray-700 font-bold">Địa Chỉ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-companies"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB 4: DANH SÁCH ỨNG VIÊN -->
+                    <div id="admin-tab-candidates" class="admin-tab-content hidden bg-white p-4 rounded border shadow-sm">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-xs text-gray-700">Cơ Sở Dữ Liệu Hồ Sơ Ứng Viên Trực Tuyến</h4>
+                            <span id="badge-candidates-count" class="bg-blue-100 text-blue-800 text-[11px] font-bold px-2 py-0.5 rounded-full">15</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-100 border-b border-gray-200">
+                                        <th class="p-3 text-gray-400">STT</th>
+                                        <th class="p-3 text-gray-700 font-bold">Avatar</th>
+                                        <th class="p-3 text-gray-700 font-bold">Họ Và Tên</th>
+                                        <th class="p-3 text-gray-700 font-bold">Giới Tính</th>
+                                        <th class="p-3 text-gray-700 font-bold">Thông Tin Liên Hệ</th>
+                                        <th class="p-3 text-gray-700 font-bold">Năng Lực & Tệp Tin CV</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbl-candidates"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <div id="loginModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded shadow-xl max-w-sm w-full overflow-hidden border border-gray-100">
+            <div class="bg-[#1e1b4b] text-white p-4 flex justify-between items-center">
+                <h4 class="font-bold uppercase tracking-wider text-xs"><i class="fas fa-lock"></i> ĐĂNG NHẬP CỔNG MTD LAW</h4>
+                <button onclick="closeModal('loginModal')" class="cursor-pointer font-bold text-lg hover:text-red-400">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-gray-600 uppercase mb-1">Chọn vai trò đăng nhập *</label>
+                    <select id="loginRole" class="w-full border p-2.5 rounded bg-white font-medium text-gray-700 outline-none">
+                        <option value="candidate">Ứng viên (Ví dụ: Nguyễn Thị Lan)</option>
+                        <option value="recruiter">Nhà tuyển dụng (Doanh nghiệp)</option>
+                        <option value="admin">Quản trị viên (Admin)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">Gmail / Tài khoản *</label>
+                    <input type="text" id="loginUser" placeholder="Nhập email tài khoản" class="w-full border p-2 rounded outline-none bg-gray-50">
+                </div>
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">Mật khẩu *</label>
+                    <input type="password" id="loginPass" placeholder="Nhập mật khẩu" class="w-full border p-2 rounded outline-none bg-gray-50">
+                </div>
+                <button onclick="executeLogin()" class="w-full bg-[#1e1b4b] text-white py-2.5 rounded font-bold uppercase hover:bg-indigo-950 transition-colors shadow-md cursor-pointer mt-2 text-center">ĐĂNG NHẬP NGAY</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ĐĂNG KÝ THÀNH VIÊN -->
+    <div id="registerModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded shadow-xl max-w-md w-full overflow-hidden border border-gray-100">
+            <div class="bg-[#1e1b4b] text-white p-4 flex justify-between items-center">
+                <h4 class="font-bold text-xs uppercase tracking-wider">ĐĂNG KÝ TÀI KHOẢN MỚI</h4>
+                <button onclick="closeModal('registerModal')" class="cursor-pointer font-bold text-lg text-white hover:text-red-400">&times;</button>
+            </div>
+            <div class="p-6 space-y-3 text-xs max-h-[85vh] overflow-y-auto">
+                <div>
+                    <label class="block font-bold text-gray-600 mb-1">Bạn muốn tham gia dưới tư cách là: *</label>
+                    <select id="regRole" onchange="toggleRegisterFields(this.value)" class="w-full border p-2 rounded bg-white outline-none">
+                        <option value="candidate">Ứng viên tìm việc làm trực tuyến</option>
+                        <option value="recruiter">Nhà tuyển dụng / Công ty</option>
+                    </select>
+                </div>
+                
+                <!-- Các trường chung -->
+                <div><label class="block font-bold text-gray-600 mb-1">Mật khẩu bảo mật *</label><input type="password" id="regPass" class="w-full border p-2 rounded outline-none bg-gray-50"></div>
+                
+                <!-- Khu vực đổi giao diện cho Ứng viên -->
+                <div id="fields-candidate">
+                    <label class="block font-bold text-gray-600 mb-1">Họ tên ứng viên *</label>
+                    <input type="text" id="regNameCandidate" class="w-full border p-2 rounded outline-none bg-gray-50" placeholder="Nguyễn Văn A">
+                    <label class="block font-bold text-gray-600 mt-2 mb-1">Gmail cá nhân *</label>
+                    <input type="email" id="regEmailCandidate" class="w-full border p-2 rounded outline-none bg-gray-50" placeholder="example@gmail.com">
+                </div>
+
+                <!-- Khu vực đổi giao diện cho Doanh nghiệp (Mặc định ẩn) -->
+                <div id="fields-recruiter" class="hidden space-y-3 border-t pt-3 border-gray-100">
+                    <div><label class="block font-bold text-blue-900 mb-1">Tên công ty / doanh nghiệp *</label><input type="text" id="regCompName" class="w-full border p-2 rounded outline-none bg-gray-50"></div>
+                    <div><label class="block font-bold text-blue-900 mb-1">Gmail doanh nghiệp *</label><input type="email" id="regCompEmail" class="w-full border p-2 rounded outline-none bg-gray-50"></div>
+                    <div><label class="block font-bold text-blue-900 mb-1">Số điện thoại liên hệ *</label><input type="text" id="regCompPhone" class="w-full border p-2 rounded outline-none bg-gray-50"></div>
+                    <div><label class="block font-bold text-blue-900 mb-1">Tên người đại diện tuyển dụng *</label><input type="text" id="regCompRep" class="w-full border p-2 rounded outline-none bg-gray-50"></div>
+                </div>
+
+                <button onclick="executeRegister()" class="w-full bg-emerald-600 text-white py-2.5 rounded font-bold uppercase hover:bg-emerald-700 transition-colors cursor-pointer shadow-md mt-4">Hoàn tất thủ tục đăng ký</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: NHÀ TUYỂN DỤNG ĐĂNG TIN -->
+    <div id="recruiterPostModal" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded shadow-xl max-w-lg w-full overflow-hidden border border-gray-100">
+            <div class="bg-[#1e1b4b] text-white p-4 flex justify-between items-center">
+                <h4 class="font-bold uppercase tracking-wider text-xs"><i class="fas fa-edit"></i> CỔNG ĐĂNG TIN TUYỂN DỤNG CHO DOANH NGHIỆP</h4>
+                <button onclick="closeModal('recruiterPostModal')" class="cursor-pointer font-bold text-lg hover:text-red-400">&times;</button>
+            </div>
+            <div class="p-6 space-y-4 text-xs max-h-[85vh] overflow-y-auto">
+                <div class="bg-amber-50 p-3 rounded border border-amber-200 text-amber-900 font-medium">
+                    Vui lòng điền thông tin doanh nghiệp sở hữu và nội dung tin đăng tuyển dụng. Tin của bạn cần thông qua kiểm duyệt trước khi hiển thị.
+                </div>
+                <!-- Thông tin công ty tuyển dụng -->
+                <div class="space-y-3 border-b pb-4">
+                    <h5 class="font-bold text-blue-900 border-l-2 border-blue-900 pl-2 uppercase">1. Thông tin nhà tuyển dụng</h5>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block font-bold mb-1">Tên công ty / doanh nghiệp *</label><input type="text" id="postCompName" value="Công ty TNHH Giải pháp Công nghệ A" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                        <div><label class="block font-bold mb-1">Người đại diện tuyển dụng *</label><input type="text" id="postCompRep" placeholder="Ví dụ: Ông Trần Văn B" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block font-bold mb-1">Địa chỉ Gmail liên hệ *</label><input type="email" id="postCompEmail" placeholder="hr.companyA@gmail.com" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                        <div><label class="block font-bold mb-1">Số điện thoại liên lạc *</label><input type="text" id="postCompPhone" placeholder="0905.xxxxxx" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                    </div>
+                    <div><label class="block font-bold mb-1">Địa chỉ trụ sở công ty *</label><input type="text" id="postCompAddr" placeholder="Số 123 Đường ABC, Quận 1, TP. HCM" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                </div>
+
+                <!-- Thông tin vị trí tuyển dụng -->
+                <div class="space-y-3">
+                    <h5 class="font-bold text-blue-900 border-l-2 border-blue-900 pl-2 uppercase">2. Nội dung tuyển dụng & Gói dịch vụ</h5>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block font-bold mb-1">Vị trí công việc cần tuyển *</label><input type="text" id="postJobTitle" placeholder="Ví dụ: Kế Toán Tổng Hợp" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                        <div><label class="block font-bold mb-1">Mức lương đề xuất *</label><input type="text" id="postJobSalary" placeholder="10 - 15 triệu" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block font-bold mb-1">Khu vực làm việc *</label><input type="text" id="postJobLoc" placeholder="Hà Nội hoặc TP.HCM" class="w-full border p-2 rounded bg-gray-50 outline-none"></div>
+                        <div>
+                            <label class="block font-bold text-red-600 mb-1">Lựa chọn gói dịch vụ đăng tin *</label>
+                            <select id="postJobService" class="w-full border p-2 rounded bg-white font-bold text-gray-700 outline-none">
+                                <option value="free">Đăng tin Miễn Phí (Việc làm tiêu điểm)</option>
+                                <option value="premium">Đăng tin Trả Phí (Lên mục VIỆC LÀM HOT)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Tóm tắt ngắn mô tả công việc *</label>
+                        <textarea id="postJobDesc" rows="2" placeholder="Thực hiện thu chi, báo cáo tài chính nội bộ định kỳ..." class="w-full border p-2 rounded bg-gray-50 outline-none"></textarea>
+                    </div>
+                </div>
+
+                <button onclick="submitRecruiterJob()" class="w-full bg-[#1e1b4b] text-white py-3 rounded font-bold uppercase hover:bg-indigo-950 shadow-md cursor-pointer transition-colors text-center mt-2">GỬI YÊU CẦU DUYỆT TIN ĐĂNG</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER CHIA ĐÔI -->
+    <footer class="bg-[#111827] text-gray-400 py-10 px-6 md:px-16 mt-12 border-t border-gray-800 text-xs">
+        <div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
+            <!-- Left Side -->
+            <div class="space-y-3">
+                <h3 class="text-white font-black text-xl tracking-wider">MTD Law</h3>
+                <p class="text-gray-300 font-medium">Hệ thống cung cấp giải pháp kết nối, tuyển dụng nhân sự đa lĩnh vực toàn diện.</p>
+                <p class="pt-1"><i class="fas fa-phone-alt text-blue-400"></i> <span class="font-bold text-white">Hotline:</span> 0376.775.207</p>
+            </div>
+            <!-- Right Side -->
+            <div class="md:text-right md:self-end space-y-2">
+                <p class="text-gray-300"><i class="fas fa-map-marker-alt text-red-500"></i> <span class="font-bold text-white">Địa chỉ:</span> Số 18 đường Dịch Vọng Hậu, Cầu Giấy, Hà Nội.</p>
+                <p class="text-[11px] opacity-50 italic md:mt-4">©2026 MTD Law System. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT LOGIC -->
+    <script>
+        // --- GLOBAL SESSION MANAGEMENT ---
+        let CURRENT_SESSION_ROLE = null; 
+
+        // --- DATA SYSTEM ---
+        let DATA_JOBS = [
+            { id: 1, title: "Chuyên Viên Hành Chính Nhân Sự Tổng Hợp", comp: "TẬP ĐOÀN ĐẦU TƯ & CÔNG NGHỆ Á ĐÔNG", salary: "12-15 triệu", loc: "Cầu Giấy, HN", exp: "1 năm", isHot: true, desc: "Phụ trách lưu trữ hồ sơ, soạn thảo văn bản hành chính..." },
+            { id: 2, title: "Kỹ Sư Lập Trình Hệ Thống Fullstack (NodeJS/React)", comp: "CÔNG TY CP GIẢI PHÁP PHẦN MỀM SNETTECH CO", salary: "25 - 40 triệu", loc: "Hà Nội", exp: "2 năm", isHot: true, desc: "Công ty đang tìm kiếm Kỹ Sư Lập Trình Hệ Thống Fullstack (NodeJS/React) để tham gia phát triển các ứng dụng web và hệ thống quản lý nội bộ. Ứng viên sẽ đảm nhận việc xây dựng giao diện bằng React, phát triển API và xử lý nghiệp vụ bằng NodeJS, đồng thời phối hợp với các thành viên trong nhóm để triển khai, kiểm thử và tối ưu hiệu năng hệ thống. Môi trường làm việc năng động, có cơ hội học hỏi công nghệ mới và phát triển kỹ năng chuyên môn trong các dự án thực tế." },
+            { id: 3, title: "Nhân Viên Thực Tập Luật Hành Chính Đất Đai", comp: "VĂN PHÒNG LUẬStuart MTD LAW", salary: "Thỏa thuận", loc: "Cầu Giấy, HN", exp: "Không yêu cầu", isHot: false, desc: "Hỗ trợ soạn thảo hồ sơ pháp lý, tư vấn quy trình doanh nghiệp..." }
+        ];
+
+        let DATA_CANDIDATES = [
+            { stt: 1, name: "Nguyễn Thị Lan", gender: "Nữ", contact: "nguyenthilan@gmail.com<br>0912.111.222", summary: "Cử nhân tìm vị trí bán hàng cao cấp.", avatar: "", file: "" },
+            { stt: 2, name: "Nguyễn Thùy Linh", gender: "Nữ", contact: "thuylinh@gmail.com<br>0912.334.556", summary: "Cử nhân Quản trị Nhân sự - 2 năm làm tuyển dụng.", avatar: "", file: "" },
+            { stt: 3, name: "Trần Hoàng Long", gender: "Nam", contact: "longtran@gmail.com<br>0988.221.443", summary: "Kế toán tổng hợp - 4 năm kinh nghiệm.", avatar: "", file: "" },
+            { stt: 4, name: "Phạm Minh Quân", gender: "Nam", contact: "quanpham@gmail.com<br>0977.445.667", summary: "Kỹ sư phần mềm CNTT - Thành thạo NodeJS.", avatar: "", file: "" },
+            { stt: 5, name: "Lê Tuấn Tú", gender: "Nam", contact: "tule@gmail.com<br>0966.554.889", summary: "Kỹ sư Điện công nghiệp - 3 năm giám sát.", avatar: "", file: "" },
+            { stt: 6, name: "Vũ Thị Mai", gender: "Nữ", contact: "maivu@gmail.com<br>0944.333.115", summary: "Cử nhân Kinh tế - 5 năm quản lý phân phối.", avatar: "", file: "" },
+            { stt: 7, name: "Hoàng Văn Nam", gender: "Nam", contact: "namhoang@gmail.com", summary: "Chuyên viên tư vấn luật đất đai.", avatar: "", file: "" },
+            { stt: 8, name: "Đỗ Thị Thắm", gender: "Nữ", contact: "thamdo@gmail.com", summary: "Thư ký tổng hợp, biên dịch tiếng Anh.", avatar: "", file: "" },
+            { stt: 9, name: "Bùi Minh Đức", gender: "Nam", contact: "ducbui@gmail.com", summary: "Lập trình viên Mobile Flutter.", avatar: "", file: "" },
+            { stt: 10, name: "Phan Thúy Hạnh", gender: "Nữ", contact: "hanhphan@gmail.com", summary: "Chuyên viên Content Marketing.", avatar: "", file: "" },
+            { stt: 11, name: "Nguyễn Văn Hùng", gender: "Nam", contact: "hungnguyen@gmail.com", summary: "Nhân viên kỹ thuật vận hành máy nén khí.", avatar: "", file: "" },
+            { stt: 12, name: "Trịnh Kim Oanh", gender: "Nữ", contact: "oanhtrinh@gmail.com", summary: "Giao dịch viên ngân hàng.", avatar: "", file: "" },
+            { stt: 13, name: "Đặng Đình Phong", gender: "Nam", contact: "phongdang@gmail.com", summary: "Giám sát an toàn lao động HSE.", avatar: "", file: "" },
+            { stt: 14, name: "Lê Thị Hồng", gender: "Nữ", contact: "hongle@gmail.com", summary: "Chuyên viên chăm sóc khách hàng viễn thông.", avatar: "", file: "" },
+            { stt: 15, name: "Cao Minh Triết", gender: "Nam", contact: "trietcao@gmail.com", summary: "Thạc sĩ Luật tài chính.", avatar: "", file: "" }
+        ];
+
+        // 2 Công ty cũ + 8 Công ty mới giả lập (Tổng cộng đầy đủ 10 công ty)
+        let DATA_COMPANIES = [
+            { name: "Công ty TNHH Thời Trang & Mỹ Phẩm Aurora", rep: "Bà Lê Thủy Hạnh", email: "tuyendung@aurorafashion.vn", phone: "0912.445.556", addr: "Đống Đa, Hà Nội" },
+            { name: "Tập đoàn Thực phẩm & Đồ uống Việt Nam", rep: "Ông Vũ Đăng Khoa", email: "hr@vafood.vn", phone: "0283.889.991", addr: "Bình Thạnh, TP. HCM" },
+            { name: "Công ty Cổ phần Công nghệ & Phần mềm TechVina", rep: "Ông Nguyễn Minh Khôi", email: "hr@techvina.vn", phone: "0987.123.456", addr: "Cầu Giấy, Hà Nội" },
+            { name: "Công ty TNHH Thiết bị Y tế & Dược phẩm Tâm An", rep: "Bà Hoàng Thục Linh", email: "tuyendung@tamanmed.com", phone: "0904.556.778", addr: "Quận 3, TP. HCM" },
+            { name: "Tập đoàn Đầu tư & Xây dựng Đại Phát", rep: "Ông Trần Hải Nam", email: "contact@daiphatgroup.vn", phone: "0236.334.455", addr: "Hải Châu, Đà Nẵng" },
+            { name: "Công ty TNHH Giáo dục Quốc tế Sunrise", rep: "Bà Ngô Phương Anh", email: "recruitment@sunrise.edu.vn", phone: "0243.998.877", addr: "Hoàn Kiếm, Hà Nội" },
+            { name: "Chuỗi Logistics & Vận tải Toàn Cầu LogiLink", rep: "Ông Phạm Đức Thắng", email: "hr@logilink.com.vn", phone: "0915.667.788", addr: "Quận 7, TP. HCM" },
+            { name: "Công ty Cổ phần Năng lượng Xanh Việt Nam", rep: "Bà Đặng Mai Chi", email: "tuyendung@greenenergy.vn", phone: "0225.334.556", addr: "Hồng Bàng, Hải Phòng" },
+            { name: "Hệ thống Bán lẻ & Siêu thị MartPlus", rep: "Ông Đỗ Hoàng Long", email: "careers@martplus.vn", phone: "0966.112.233", addr: "Thanh Xuân, Hà Nội" },
+            { name: "Công ty TNHH Giải pháp Truyền thông & Media SunUp", rep: "Bà Lê Khánh Huyền", email: "hr@sunupmedia.vn", phone: "0292.338.899", addr: "Ninh Kiều, Cần Thơ" }
+        ];
+
+        let currentUploadedAvatar = "";
+        let currentUploadedFileName = "";
+
+        window.onload = function() {
+            renderJobLists(DATA_JOBS);
+            renderAdminData();
+        }
+
+        function navigateTo(viewId) {
+            document.querySelectorAll('.page-view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function handleRecruiterPostClick() {
+            if (CURRENT_SESSION_ROLE === 'candidate') {
+                alert("Lỗi truy cập: Bạn đang đăng nhập với tư cách Ứng viên. Chức năng đăng tin chỉ dành riêng cho Nhà tuyển dụng/Công ty!");
+            } else {
+                openModal('recruiterPostModal');
+            }
+        }
+
+        function toggleRegisterFields(role) {
+            if(role === 'recruiter') {
+                document.getElementById('fields-recruiter').classList.remove('hidden');
+                document.getElementById('fields-candidate').classList.add('hidden');
+            } else {
+                document.getElementById('fields-recruiter').classList.add('hidden');
+                document.getElementById('fields-candidate').classList.remove('hidden');
+            }
+        }
+
+        function previewImage(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentUploadedAvatar = e.target.result;
+                    document.getElementById('avatarPreview').src = currentUploadedAvatar;
+                    document.getElementById('avatarPreview').classList.remove('hidden');
+                    document.getElementById('avatarPlaceholder').classList.add('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function displayFileName(input) {
+            const file = input.files[0];
+            if (file) {
+                currentUploadedFileName = file.name;
+                document.getElementById('fileNameDisplay').innerHTML = `<span class="text-emerald-600 font-bold"><i class="fas fa-file-alt"></i> ${file.name}</span> (Đã đính kèm thành công)`;
+            }
+        }
+
+        function submitCandidateCV() {
+            let name = document.getElementById('cvName').value.trim();
+            let gender = document.getElementById('cvGender').value;
+            let email = document.getElementById('cvEmail').value.trim();
+            let phone = document.getElementById('cvPhone').value.trim();
+            let summary = document.getElementById('cvSummary').value.trim();
+
+            if(!name || !email || !phone || !summary) return alert("Vui lòng nhập đầy đủ các trường thông tin bắt buộc!");
+            if(!currentUploadedFileName) return alert("Vui lòng tải lên file đính kèm tập tin CV của bạn!");
+
+            let newCandidate = {
+                stt: DATA_CANDIDATES.length + 1,
+                name: name,
+                gender: gender,
+                contact: `${email}<br>${phone}`,
+                summary: summary,
+                avatar: currentUploadedAvatar,
+                file: currentUploadedFileName
+            };
+
+            DATA_CANDIDATES.unshift(newCandidate);
+            renderAdminData();
+            alert("Hồ sơ ứng viên của bạn đã được xuất bản và nộp thành công!");
+            navigateTo('home-view');
+        }
+
+        function submitRecruiterJob() {
+            let compName = document.getElementById('postCompName').value.trim();
+            let compRep = document.getElementById('postCompRep').value.trim();
+            let compEmail = document.getElementById('postCompEmail').value.trim();
+            let compPhone = document.getElementById('postCompPhone').value.trim();
+            let jobTitle = document.getElementById('postJobTitle').value.trim();
+            let jobSalary = document.getElementById('postJobSalary').value.trim();
+            let jobLoc = document.getElementById('postJobLoc').value.trim();
+
+            if(!compName || !compRep || !compEmail || !compPhone || !jobTitle || !jobSalary || !jobLoc) {
+                return alert("Vui lòng bổ sung đầy đủ thông tin nhà tuyển dụng và vị trí công việc tuyển dụng!");
+            }
+
+            alert("Gửi tin đăng thành công! Tin tuyển dụng vị trí '" + jobTitle + "' của công ty đã được chuyển vào hàng đợi. Vui lòng chờ Ban quản trị MTD Law duyệt hiển thị trong vòng 24h.");
+            closeModal('recruiterPostModal');
+        }
+
+        function renderJobLists(jobsArray) {
+            let hotHtml = '', normalHtml = '';
+            jobsArray.forEach(job => {
+                let card = `
+                    <div class="border border-gray-200 p-5 bg-white rounded shadow-xs relative flex flex-col justify-between">
+                        <div>
+                            <h4 onclick="viewJobDetail(${job.id})" class="font-bold text-gray-900 cursor-pointer hover:text-blue-700">${job.title}</h4>
+                            <p class="text-xs text-gray-400 mt-2 uppercase tracking-wide"><i class="fas fa-building text-slate-400"></i> ${job.comp}</p>
+                        </div>
+                        <div class="mt-4 flex justify-between items-center border-t pt-2 text-xs">
+                            <span class="text-red-500 font-bold">${job.salary}</span>
+                            <span class="text-gray-400"><i class="fas fa-map-marker-alt"></i> ${job.loc}</span>
+                        </div>
+                    </div>`;
+                if(job.isHot) hotHtml += card; else normalHtml += card;
+            });
+            document.getElementById('hot-jobs-container').innerHTML = hotHtml || '<p class="text-gray-400">Chưa có tin hot</p>';
+            document.getElementById('normal-jobs-container').innerHTML = normalHtml;
+        }
+
+        function viewJobDetail(id) {
+            let job = DATA_JOBS.find(j => j.id === id);
+            if(!job) return;
+            document.getElementById('det-title').innerText = job.title;
+            document.getElementById('det-company').innerText = job.comp;
+            document.getElementById('det-salary').innerText = job.salary;
+            document.getElementById('det-exp').innerText = job.exp;
+            document.getElementById('det-loc').innerText = job.loc;
+            document.getElementById('det-desc').innerText = job.desc;
+            navigateTo('detail-view');
+        }
+
+        function renderAdminData() {
+            let compHtml = '';
+            DATA_COMPANIES.forEach(c => {
+                compHtml += `<tr class="border-b border-gray-100 hover:bg-gray-50/50">
+                    <td class="p-3 font-bold text-gray-800">${c.name}</td>
+                    <td class="p-3 text-gray-600">${c.rep}</td>
+                    <td class="p-3 text-blue-600 font-medium"><a href="mailto:${c.email}" class="hover:underline">${c.email}</a></td>
+                    <td class="p-3 text-gray-600">${c.phone}</td>
+                    <td class="p-3 text-gray-500">${c.addr}</td>
+                </tr>`;
+            });
+            document.getElementById('tbl-companies').innerHTML = compHtml;
+            document.getElementById('kpi-comp-count').innerText = DATA_COMPANIES.length;
+
+            let candHtml = '';
+            DATA_CANDIDATES.forEach((can, index) => {
+                let imgTag = can.avatar 
+                    ? `<img src="${can.avatar}" class="w-10 h-10 object-cover rounded-full border">` 
+                    : `<div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-400"><i class="fas fa-user text-xs"></i></div>`;
+                
+                let fileTag = can.file 
+                    ? `<div class="mt-2 text-emerald-600 font-bold"><i class="fas fa-paperclip"></i> File đính kèm: ${can.file}</div>` 
+                    : `<div class="mt-2 text-gray-400 italic"><i class="fas fa-times-circle"></i> Chưa tải file</div>`;
+
+                candHtml += `<tr class="hover:bg-gray-50 border-b border-gray-100">
+                    <td class="p-3 text-gray-400">${index + 1}</td>
+                    <td class="p-3">${imgTag}</td>
+                    <td class="p-3 font-bold text-gray-900">${can.name}</td>
+                    <td class="p-3">${can.gender}</td>
+                    <td class="p-3 text-gray-600">${can.contact}</td>
+                    <td class="p-3 text-gray-600">
+                        <div class="font-medium">${can.summary}</div>
+                        ${fileTag}
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('tbl-candidates').innerHTML = candHtml;
+            document.getElementById('badge-candidates-count').innerText = DATA_CANDIDATES.length;
+            document.getElementById('kpi-cand').innerText = DATA_CANDIDATES.length;
+        }
+
+        function executeLogin() {
+            let role = document.getElementById('loginRole').value;
+            let user = document.getElementById('loginUser').value.trim();
+            if(!user) return alert("Vui lòng điền địa chỉ đăng nhập!");
+
+            CURRENT_SESSION_ROLE = role; 
+            let welcomeText = document.getElementById('welcome-text');
+            
+            document.getElementById('btn-nav-login').classList.add('hidden');
+            document.getElementById('btn-nav-register').classList.add('hidden');
+            welcomeText.classList.remove('hidden');
+
+            let logoutBtn = `<button onclick="executeLogout()" class="bg-red-500 hover:bg-red-600 text-white px-2 py-0.5 rounded text-[11px] font-bold cursor-pointer ml-2 transition-all shadow-xs"><i class="fas fa-sign-out-alt"></i> Đăng xuất</button>`;
+
+            if(role === 'admin') {
+                welcomeText.innerHTML = `<span>| QTV: </span><span class="text-red-600 underline cursor-pointer font-bold" onclick="navigateTo('admin-view')">Vào quản trị</span> ${logoutBtn}`;
+                document.getElementById('candidate-subnav').classList.remove('hidden');
+                document.getElementById('btnGoAdmin').classList.remove('hidden');
+                navigateTo('admin-view');
+            } else if(role === 'candidate') {
+                welcomeText.innerHTML = `<span>| Ứng viên: </span><span class="text-blue-600">Nguyễn Thị Lan</span> ${logoutBtn}`;
+                document.getElementById('candidate-subnav').classList.remove('hidden');
+                document.getElementById('btnGoAdmin').classList.add('hidden');
+                alert("Đăng nhập vai trò Ứng viên trực tuyến thành công!");
+            } else {
+                welcomeText.innerHTML = `<span>| Nhà TD: </span><span class="text-emerald-600">${user}</span> ${logoutBtn}`;
+                document.getElementById('candidate-subnav').classList.add('hidden');
+                alert("Đăng nhập vai trò Nhà tuyển dụng thành công!");
+            }
+            closeModal('loginModal');
+        }
+
+        function executeLogout() {
+            CURRENT_SESSION_ROLE = null;
+            let welcomeText = document.getElementById('welcome-text');
+            welcomeText.innerHTML = "";
+            welcomeText.classList.add('hidden');
+            
+            document.getElementById('btn-nav-login').classList.remove('hidden');
+            document.getElementById('btn-nav-register').classList.remove('hidden');
+            
+            document.getElementById('candidate-subnav').classList.add('hidden');
+            alert("Đã đăng xuất tài khoản an toàn khỏi hệ thống!");
+            navigateTo('home-view');
+        }
+
+        function executeRegister() {
+            let role = document.getElementById('regRole').value;
+            let pass = document.getElementById('regPass').value.trim();
+
+            if(!pass) return alert("Vui lòng thiết lập mật khẩu tài khoản!");
+
+            if(role === 'recruiter') {
+                let compName = document.getElementById('regCompName').value.trim();
+                let compEmail = document.getElementById('regCompEmail').value.trim();
+                let compPhone = document.getElementById('regCompPhone').value.trim();
+                let compRep = document.getElementById('regCompRep').value.trim();
+
+                if(!compName || !compEmail || !compPhone || !compRep) {
+                    return alert("Yêu cầu Doanh nghiệp điền đầy đủ: Tên công ty, Gmail, Số điện thoại và Tên người đại diện!");
+                }
+
+                DATA_COMPANIES.push({
+                    name: compName,
+                    rep: compRep,
+                    email: compEmail,
+                    phone: compPhone,
+                    addr: "Chưa cập nhật"
+                });
+                renderAdminData();
+                alert("Đăng ký tài khoản Doanh nghiệp thành công! Thông tin '" + compName + "' đã được ghi nhận trên hệ thống.");
+            } else {
+                let candName = document.getElementById('regNameCandidate').value.trim();
+                let candEmail = document.getElementById('regEmailCandidate').value.trim();
+                if(!candName || !candEmail) return alert("Vui lòng điền họ tên và Gmail của ứng viên!");
+                alert("Đăng ký tài khoản Ứng viên trực tuyến thành công!");
+            }
+            
+            closeModal('registerModal');
+        }
+
+        function switchAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-menu').forEach(el => el.classList.remove('active', 'bg-slate-700', 'text-white'));
+            
+            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`menu-${tabName}`).classList.add('active', 'bg-slate-700', 'text-white');
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function executeSearch() { alert("Hệ thống đang tìm kiếm theo dữ liệu của bạn..."); }
+    </script>
+</body>
+</html>
+
